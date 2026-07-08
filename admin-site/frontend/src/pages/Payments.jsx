@@ -3,7 +3,7 @@ import {
   Search, RefreshCw, Check, X, Filter, Eye,
 } from "lucide-react";
 
-const API = "http://localhost:5000";
+const API = "https://full-stack-car-rental-system.vercel.app";
 
 const Payments = () => {
   const token = localStorage.getItem("adminToken");

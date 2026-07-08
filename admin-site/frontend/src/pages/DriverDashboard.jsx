@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { MapPin, Calendar, Clock, Users, Phone, Loader2, Car } from "lucide-react";
 
-const API = "http://localhost:5000";
+const API = "https://full-stack-car-rental-system.vercel.app";
 
 const DriverDashboard = () => {
   const [bookings, setBookings] = useState([]);

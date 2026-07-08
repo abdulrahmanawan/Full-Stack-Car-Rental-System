@@ -14,7 +14,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "https://awanrentacar.vercel.app",
+      "https://awancarrentalmanagement.vercel.app",
+    ],
     credentials: true,
   })
 );
@@ -34,7 +37,4 @@ app.use("/api/bookings", bookingsRoutes);
 app.use("/api/drivers", driverRoutes);
 app.use("/api/payments", paymentRoutes);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+module.exports = app;   

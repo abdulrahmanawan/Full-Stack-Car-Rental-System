@@ -14,7 +14,7 @@ const FeaturedCars = () => {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API = "http://localhost:5000";
+  const API = "https://full-stack-car-rental-system.vercel.app";
 
   const getTypeFromSeats = (seats) => {
     const count = Number(seats || 5);

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 import Sidebar from "../components/Sidebar";
 import { Bell, X, CalendarCheck2 } from "lucide-react";
 
-const API = "http://localhost:5000";
+const API = "https://full-stack-car-rental-system.vercel.app";
 const NotificationContext = createContext();
 
 export const useNotification = () => useContext(NotificationContext);

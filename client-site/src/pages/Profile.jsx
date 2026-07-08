@@ -6,7 +6,7 @@ import {
   PhoneCall, MessageSquare, Bell, Smartphone, Banknote,
 } from "lucide-react";
 
-const API = "http://localhost:5000";
+const API = "https://full-stack-car-rental-system.vercel.app";
 const ADMIN_WHATSAPP = "923165040247";
 const EASYPAISA_ACCOUNT = "03188046057";
 const EASYPAISA_NAME = "Abdulrahman";

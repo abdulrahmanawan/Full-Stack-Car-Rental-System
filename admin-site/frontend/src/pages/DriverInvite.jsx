@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Key, Loader2, CheckCircle, Shield } from "lucide-react";
 import logoImage from "../assets/logo.png";
 
-const API = "http://localhost:5000";
+const API = "https://full-stack-car-rental-system.vercel.app";
 
 const DriverInvite = () => {
   const [searchParams] = useSearchParams();

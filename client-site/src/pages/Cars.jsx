@@ -24,7 +24,7 @@ const Cars = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const API = "http://localhost:5000";
+  const API = "https://full-stack-car-rental-system.vercel.app";
 
   const getCardType = (car) => {
     if (car.type) return car.type;

@@ -6,7 +6,7 @@ import {
   CircleDashed, BadgeCheck, UserPlus, DollarSign
 } from "lucide-react";
 
-const API = "http://localhost:5000";
+const API = "https://full-stack-car-rental-system.vercel.app";
 
 const emptyForm = {
   customer_id: "",

@@ -6,7 +6,7 @@ import {
   Star, CheckCircle2, Loader2, X, AlertCircle,
 } from "lucide-react";
 
-const API = "http://localhost:5000";
+const API = "https://full-stack-car-rental-system.vercel.app";
 
 const initialFormData = {
   name: "",

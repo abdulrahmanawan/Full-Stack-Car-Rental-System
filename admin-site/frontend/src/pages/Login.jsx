@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logoImage from "../assets/logo.png";
 
+const API = "https://full-stack-car-rental-system.vercel.app";
+
 const Login = () => {
   const [role, setRole] = useState("admin");
   const [formData, setFormData] = useState({
@@ -26,11 +28,10 @@ const Login = () => {
     setMessage("");
 
     try {
-      
       const url =
         role === "admin"
-          ? "http://localhost:5000/api/auth/login"
-          : "http://localhost:5000/api/auth/driver/login";
+          ? `${API}/api/auth/login`
+          : `${API}/api/auth/driver/login`;
 
       const body =
         role === "admin"
@@ -77,7 +78,6 @@ const Login = () => {
       <div className="container-fluid login-shell">
         <div className="row min-vh-100 g-0 align-items-center">
           <div className="col-lg-7 d-none d-lg-flex hero-side">
-            
             <div className="hero-content">
               <div className="brand-pill">
                 <div className="brand-logo">
@@ -131,7 +131,6 @@ const Login = () => {
               )}
 
               <form onSubmit={handleSubmit}>
-                
                 <div className="mb-3">
                   <label className="form-label">Login as</label>
                   <select
@@ -139,7 +138,7 @@ const Login = () => {
                     value={role}
                     onChange={(e) => {
                       setRole(e.target.value);
-                      setMessage(""); 
+                      setMessage("");
                     }}
                   >
                     <option value="admin">Admin</option>
@@ -147,7 +146,6 @@ const Login = () => {
                   </select>
                 </div>
 
-                
                 {role === "admin" ? (
                   <div className="mb-3">
                     <label className="form-label">Email Address</label>
@@ -214,7 +212,6 @@ const Login = () => {
       </div>
 
       <style>{`
-        
         html, body, #root {
           min-height: 100%;
         }

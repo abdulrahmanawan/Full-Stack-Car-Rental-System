@@ -4,7 +4,7 @@ import {
   User, Phone, Mail, Filter, LayoutGrid, Calendar,
 } from "lucide-react";
 
-const API = "http://localhost:5000";
+const API = "https://full-stack-car-rental-system.vercel.app";
 const emptyForm = { name: "", phone: "", email: "" };
 
 const Customers = () => {
