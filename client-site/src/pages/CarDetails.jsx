@@ -51,7 +51,9 @@ const normalizeCar = (data) => {
         : ["Clean Interior", "Family Ride", "Driver Included"],
     type,
     status,
-    image: data?.image_url ? `${API}${data.image_url}` : "",
+    image: data?.image_url
+      ? (data.image_url.startsWith("http") ? data.image_url : `${API}${data.image_url}`)
+      : "",
     description:
       data?.description ||
       "A comfortable and reliable car for family trips, airport transfers, city travel, and out-of-city journeys.",
@@ -400,7 +402,7 @@ const CarDetails = () => {
                 </Link>
 
                 <a
-                  href="https://wa.me/923000000000"
+                  href="https://wa.me/923165040247"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn action-btn back-btn flex-grow-1"
