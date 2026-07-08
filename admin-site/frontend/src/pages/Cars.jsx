@@ -12,7 +12,7 @@ const emptyForm = {
   name: "", brand: "", model: "", year: "", location: "Islamabad",
   type: "Sedan", seats: 5, transmission: "Automatic", fuel_type: "Petrol",
   daily_price: "", weekly_price: "", rating: "4.5", status: "available",
-  featured: false, badges: "", description: "",
+  featured: false, badges: "", description: "", image_url: "",
 };
 
 const popularModels = [
@@ -38,7 +38,6 @@ const Cars = () => {
   const [cars, setCars] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
-  const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
@@ -61,7 +60,6 @@ const Cars = () => {
   };
 
   useEffect(() => { fetchCars(); }, []);
-  useEffect(() => { return () => { if (imagePreview && imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview); }; }, [imagePreview]);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -99,21 +97,87 @@ const Cars = () => {
     featured: cars.filter(c => Number(c.featured) === 1).length,
   }), [cars]);
 
-  const resetForm = () => { setForm(emptyForm); setEditingId(null); setImageFile(null); setImagePreview(""); setMessage(""); setStep(1); };
+  const resetForm = () => { setForm(emptyForm); setEditingId(null); setImagePreview(""); setMessage(""); setStep(1); };
   const openCreateModal = () => { resetForm(); setModalOpen(true); };
-  const closeModal = () => { setModalOpen(false); setMessage(""); setStep(1); setImageFile(null); setImagePreview(prev => { if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev); return ""; }); };
+  const closeModal = () => { setModalOpen(false); setMessage(""); setStep(1); setImagePreview(""); };
 
-  const handleChange = (e) => { const { name, value, type, checked } = e.target; setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value })); };
-  const handleImageChange = (e) => { const file = e.target.files && e.target.files[0]; if (!file) return; setImagePreview(prev => { if (prev && prev.startsWith("blob:")) URL.revokeObjectURL(prev); return URL.createObjectURL(file); }); setImageFile(file); };
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    if (name === "image_url") setImagePreview(value);
+  };
 
-  const handleEdit = (car) => { setEditingId(car.id); setForm({ name: car.name || "", brand: car.brand || "", model: car.model || "", year: car.year || "", location: car.location || "Islamabad", type: car.type || "Sedan", seats: car.seats || 5, transmission: car.transmission || "Automatic", fuel_type: car.fuel_type || "Petrol", daily_price: car.daily_price || "", weekly_price: car.weekly_price || "", rating: car.rating || "4.5", status: car.status || "available", featured: Number(car.featured) === 1, badges: Array.isArray(car.badges) ? car.badges.join(", ") : car.badges || "", description: car.description || "" }); setImageFile(null); setImagePreview(car.image_url ? `${API}${car.image_url}` : ""); setViewCar(null); setModalOpen(true); setStep(1); setMessage(""); };
+  const handleEdit = (car) => {
+    setEditingId(car.id);
+    setForm({
+      name: car.name || "", brand: car.brand || "", model: car.model || "", year: car.year || "",
+      location: car.location || "Islamabad", type: car.type || "Sedan", seats: car.seats || 5,
+      transmission: car.transmission || "Automatic", fuel_type: car.fuel_type || "Petrol",
+      daily_price: car.daily_price || "", weekly_price: car.weekly_price || "",
+      rating: car.rating || "4.5", status: car.status || "available",
+      featured: Number(car.featured) === 1,
+      badges: Array.isArray(car.badges) ? car.badges.join(", ") : car.badges || "",
+      description: car.description || "",
+      image_url: car.image_url || "",
+    });
+    setImagePreview(car.image_url || "");
+    setViewCar(null);
+    setModalOpen(true);
+    setStep(1);
+    setMessage("");
+  };
+
   const handleView = (car) => setViewCar(car);
 
-  const handleDelete = async (id) => { if (!window.confirm("Kya aap is car ko delete karna chahte ho?")) return; try { const res = await fetch(`${API}/api/cars/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }); const data = await res.json(); if (!res.ok) { setMessage(data.message || "Delete failed"); return; } setMessage(data.message || "Car deleted"); fetchCars(); if (editingId === id) resetForm(); setModalOpen(false); setViewCar(null); } catch { setMessage("Server error"); } };
+  const handleDelete = async (id) => {
+    if (!window.confirm("Kya aap is car ko delete karna chahte ho?")) return;
+    try {
+      const res = await fetch(`${API}/api/cars/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (!res.ok) { setMessage(data.message || "Delete failed"); return; }
+      setMessage(data.message || "Car deleted");
+      fetchCars();
+      if (editingId === id) resetForm();
+      setModalOpen(false);
+      setViewCar(null);
+    } catch { setMessage("Server error"); }
+  };
 
-  const validateStep = (currentStep) => { if (currentStep === 1) { if (!form.name || !form.brand || !form.model || !form.year || !form.type) { setMessage("Basics complete karo."); return false; } } if (currentStep === 2) { if (!form.location || !form.seats || !form.transmission || !form.fuel_type || !form.status) { setMessage("Details complete karo."); return false; } } if (currentStep === 3) { if (!form.daily_price) { setMessage("Daily price required hai."); return false; } } setMessage(""); return true; };
+  const validateStep = (currentStep) => {
+    if (currentStep === 1) { if (!form.name || !form.brand || !form.model || !form.year || !form.type) { setMessage("Basics complete karo."); return false; } }
+    if (currentStep === 2) { if (!form.location || !form.seats || !form.transmission || !form.fuel_type || !form.status) { setMessage("Details complete karo."); return false; } }
+    if (currentStep === 3) { if (!form.daily_price) { setMessage("Daily price required hai."); return false; } }
+    setMessage(""); return true;
+  };
 
-  const handleSubmit = async (e) => { e.preventDefault(); if (step < 3) { if (!validateStep(step)) return; setStep(prev => prev + 1); return; } if (!validateStep(3)) return; setLoading(true); setMessage(""); try { const fd = new FormData(); fd.append("name", form.name); fd.append("brand", form.brand); fd.append("model", form.model); fd.append("year", form.year); fd.append("location", form.location); fd.append("type", form.type); fd.append("seats", form.seats); fd.append("transmission", form.transmission); fd.append("fuel_type", form.fuel_type); fd.append("daily_price", form.daily_price); fd.append("weekly_price", form.weekly_price); fd.append("rating", form.rating); fd.append("status", form.status); fd.append("featured", form.featured ? "1" : "0"); fd.append("badges", form.badges); fd.append("description", form.description); if (imageFile) fd.append("image", imageFile); const url = editingId ? `${API}/api/cars/${editingId}` : `${API}/api/cars`; const res = await fetch(url, { method: editingId ? "PUT" : "POST", headers: { Authorization: `Bearer ${token}` }, body: fd }); const data = await res.json(); if (!res.ok) { setMessage(data.message || "Something went wrong"); return; } setMessage(data.message || "Saved"); await fetchCars(); closeModal(); resetForm(); } catch { setMessage("Server connection failed"); } finally { setLoading(false); } };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (step < 3) { if (!validateStep(step)) return; setStep(prev => prev + 1); return; }
+    if (!validateStep(3)) return;
+    setLoading(true); setMessage("");
+    try {
+      const body = { ...form };
+      const url = editingId ? `${API}/api/cars/${editingId}` : `${API}/api/cars`;
+      const method = editingId ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) { setMessage(data.message || "Something went wrong"); return; }
+      setMessage(data.message || "Saved");
+      await fetchCars();
+      closeModal();
+      resetForm();
+    } catch { setMessage("Server connection failed"); } finally { setLoading(false); }
+  };
 
   const badgeList = form.badges.split(",").map(item => item.trim()).filter(Boolean);
   const selectedStepTitle = steps.find(item => item.id === step)?.title || "Basics";
@@ -289,7 +353,7 @@ const Cars = () => {
                   <tr key={car.id} className="cars-row">
                     <td>
                       <div className="car-main">
-                        <img src={car.image_url ? `${API}${car.image_url}` : fallbackImage} alt={car.name} className="car-thumb" onError={e => { e.currentTarget.src = fallbackImage; }} />
+                        <img src={car.image_url ? car.image_url : fallbackImage} alt={car.name} className="car-thumb" onError={e => { e.currentTarget.src = fallbackImage; }} />
                         <div style={{ minWidth: 0 }}><p className="car-name">{car.name}</p><p className="car-meta">{car.brand} • {car.model}</p></div>
                       </div>
                     </td>
@@ -347,8 +411,27 @@ const Cars = () => {
                   <div className="section-block"><label className="section-label">Weekly Price</label><input type="number" className="form-control control" name="weekly_price" value={form.weekly_price} onChange={handleChange} /></div>
                   <div className="section-block" style={{ gridColumn: "1 / -1" }}><label className="section-label">Badges / Highlights</label><input type="text" className="form-control control" name="badges" value={form.badges} onChange={handleChange} /><div className="helper-row">{badgeList.length > 0 ? badgeList.map((item, idx) => <span key={idx} className="mini-badge"><BadgeCheck size={11} />{item}</span>) : <span className="text-muted small">No badges</span>}</div></div>
                   <div className="section-block" style={{ gridColumn: "1 / -1" }}><label className="section-label">Description</label><textarea className="form-control control" rows="3" name="description" value={form.description} onChange={handleChange} /></div>
-                  <div className="section-block"><label className="section-label">Image</label><input type="file" className="form-control control" accept="image/*" onChange={handleImageChange} /></div>
-                  <div className="section-block"><label className="section-label">Preview</label><div className="preview-box">{imagePreview ? <img src={imagePreview} alt="Preview" className="preview-thumb" /> : <div className="d-flex flex-column align-items-center justify-content-center text-muted" style={{ height: "140px" }}><Upload size={24} className="mb-2" /><span className="small">No image</span></div>}</div></div>
+                  <div className="section-block" style={{ gridColumn: "1 / -1" }}>
+                    <label className="section-label">Image URL</label>
+                    <input
+                      type="url"
+                      className="form-control control"
+                      name="image_url"
+                      value={form.image_url}
+                      onChange={handleChange}
+                      placeholder="https://i.imgur.com/abc.jpg"
+                    />
+                    <div className="preview-box mt-2">
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="preview-thumb" onError={() => setImagePreview(fallbackImage)} />
+                      ) : (
+                        <div className="d-flex flex-column align-items-center justify-content-center text-muted" style={{ height: "140px" }}>
+                          <Upload size={24} className="mb-2" />
+                          <span className="small">No image</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>}
               </div>
               <div className="modal-footer">
@@ -372,7 +455,7 @@ const Cars = () => {
             <div className="modal-head"><div><h3 className="modal-title">Car Details</h3><p className="modal-subtitle">Full record</p></div><button className="modal-close" type="button" onClick={() => setViewCar(null)}><X size={16} /></button></div>
             <div className="modal-body">
               <div className="view-grid">
-                <div className="view-hero"><img className="view-image" src={viewCar.image_url ? `${API}${viewCar.image_url}` : fallbackImage} alt={viewCar.name} onError={e => { e.currentTarget.src = fallbackImage; }} /></div>
+                <div className="view-hero"><img className="view-image" src={viewCar.image_url ? viewCar.image_url : fallbackImage} alt={viewCar.name} onError={e => { e.currentTarget.src = fallbackImage; }} /></div>
                 <div className="view-body">
                   <div className="info-card"><div className="info-title">{viewCar.name}</div><div className="view-meta"><span className="mini-badge"><MapPin size={11} />{viewCar.location}</span><span className="mini-badge"><CarFront size={11} />{viewCar.type}</span><span className="mini-badge"><Gauge size={11} />{viewCar.seats} Seats</span><span className="mini-badge"><Fuel size={11} />{viewCar.fuel_type}</span></div></div>
                   <div className="info-card"><div className="info-title">Brand & Model</div><div className="info-value">{viewCar.brand} • {viewCar.model} • {viewCar.year}</div></div>

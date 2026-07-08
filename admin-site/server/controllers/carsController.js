@@ -4,23 +4,18 @@ const pool = require("../config/db");
 
 const removeOldImage = (imageUrl) => {
   if (!imageUrl) return;
-
+  if (imageUrl.startsWith("http")) return;
   const fullPath = path.join(
     __dirname,
     "..",
     imageUrl.replace("/uploads", "uploads")
   );
-
-  if (fs.existsSync(fullPath)) {
-    fs.unlinkSync(fullPath);
-  }
+  if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
 };
 
 const parseBadges = (badges) => {
   if (!badges) return [];
-
   if (Array.isArray(badges)) return badges;
-
   if (typeof badges === "string") {
     try {
       const parsed = JSON.parse(badges);
@@ -32,7 +27,6 @@ const parseBadges = (badges) => {
         .filter(Boolean);
     }
   }
-
   return [];
 };
 
@@ -67,16 +61,13 @@ const getPublicCars = async (req, res) => {
 const getSingleCar = async (req, res) => {
   try {
     const { id } = req.params;
-
     const [rows] = await pool.execute(
       "SELECT * FROM cars WHERE id = ? LIMIT 1",
       [id]
     );
-
     if (rows.length === 0) {
       return res.status(404).json({ message: "Car not found" });
     }
-
     res.json(mapCarRow(rows[0]));
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -103,9 +94,16 @@ const createCar = async (req, res) => {
       featured,
       badges,
       description,
+      image_url,
     } = req.body;
 
-    const image_url = req.file ? `/uploads/cars/${req.file.filename}` : null;
+    let finalImage = null;
+    if (image_url && image_url.trim() !== "") {
+      finalImage = image_url.trim();
+    } else if (req.file) {
+      finalImage = `/uploads/cars/${req.file.filename}`;
+    }
+
     const carType = type || car_type || "Sedan";
     const badgesValue = JSON.stringify(parseBadges(badges));
     const finalRating = rating ? Number(rating) : 4.5;
@@ -131,7 +129,7 @@ const createCar = async (req, res) => {
         ["1", 1, true, "true"].includes(featured) ? 1 : 0,
         badgesValue,
         description || null,
-        image_url,
+        finalImage,
       ]
     );
 
@@ -151,16 +149,13 @@ const createCar = async (req, res) => {
 const updateCar = async (req, res) => {
   try {
     const { id } = req.params;
-
     const [existingRows] = await pool.execute(
       "SELECT * FROM cars WHERE id = ?",
       [id]
     );
-
     if (existingRows.length === 0) {
       return res.status(404).json({ message: "Car not found" });
     }
-
     const existingCar = existingRows[0];
 
     const {
@@ -181,13 +176,27 @@ const updateCar = async (req, res) => {
       featured,
       badges,
       description,
+      image_url,
     } = req.body;
 
-    let image_url = existingCar.image_url;
-
-    if (req.file) {
-      removeOldImage(existingCar.image_url);
-      image_url = `/uploads/cars/${req.file.filename}`;
+    let finalImage = existingCar.image_url;
+    if (image_url !== undefined && image_url !== null) {
+      if (image_url.trim() !== "") {
+        if (existingCar.image_url && !existingCar.image_url.startsWith("http")) {
+          removeOldImage(existingCar.image_url);
+        }
+        finalImage = image_url.trim();
+      } else {
+        if (existingCar.image_url && !existingCar.image_url.startsWith("http")) {
+          removeOldImage(existingCar.image_url);
+        }
+        finalImage = null;
+      }
+    } else if (req.file) {
+      if (existingCar.image_url && !existingCar.image_url.startsWith("http")) {
+        removeOldImage(existingCar.image_url);
+      }
+      finalImage = `/uploads/cars/${req.file.filename}`;
     }
 
     const carType = type || car_type || "Sedan";
@@ -196,23 +205,9 @@ const updateCar = async (req, res) => {
 
     await pool.execute(
       `UPDATE cars SET
-        name = ?,
-        brand = ?,
-        model = ?,
-        year = ?,
-        location = ?,
-        car_type = ?,
-        seats = ?,
-        transmission = ?,
-        fuel_type = ?,
-        daily_price = ?,
-        weekly_price = ?,
-        rating = ?,
-        status = ?,
-        featured = ?,
-        badges = ?,
-        description = ?,
-        image_url = ?
+        name = ?, brand = ?, model = ?, year = ?, location = ?, car_type = ?, seats = ?,
+        transmission = ?, fuel_type = ?, daily_price = ?, weekly_price = ?, rating = ?,
+        status = ?, featured = ?, badges = ?, description = ?, image_url = ?
       WHERE id = ?`,
       [
         name,
@@ -231,7 +226,7 @@ const updateCar = async (req, res) => {
         ["1", 1, true, "true"].includes(featured) ? 1 : 0,
         badgesValue,
         description || null,
-        image_url,
+        finalImage,
         id,
       ]
     );
@@ -253,17 +248,12 @@ const updateCar = async (req, res) => {
 const deleteCar = async (req, res) => {
   try {
     const { id } = req.params;
-
     const [rows] = await pool.execute("SELECT * FROM cars WHERE id = ?", [id]);
-
     if (rows.length === 0) {
       return res.status(404).json({ message: "Car not found" });
     }
-
     removeOldImage(rows[0].image_url);
-
     await pool.execute("DELETE FROM cars WHERE id = ?", [id]);
-
     res.json({ message: "Car deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
