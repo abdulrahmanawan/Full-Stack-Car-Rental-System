@@ -30,6 +30,12 @@ const FeaturedCars = () => {
     return status || "Available";
   };
 
+  const getImageUrl = (img) => {
+    if (!img) return "";
+    if (img.startsWith("http")) return img;
+    return `${API}${img}`;
+  };
+
   useEffect(() => {
     const fetchCars = async () => {
       try {
@@ -50,9 +56,7 @@ const FeaturedCars = () => {
               rating: Number(car.rating || (car.featured ? 4.8 : 4.5)),
               type: car.type || getTypeFromSeats(car.seats),
               status: getStatusLabel(car.status),
-              image: car.image_url
-                ? `${API}${car.image_url}`
-                : car.image || "",
+              image: getImageUrl(car.image_url),
               featured: Number(car.featured || 0),
             }))
           : [];

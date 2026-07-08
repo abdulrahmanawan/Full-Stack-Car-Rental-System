@@ -47,6 +47,12 @@ const Cars = () => {
     return 4.5;
   };
 
+  const getImageUrl = (img) => {
+    if (!img) return "";
+    if (img.startsWith("http")) return img;
+    return `${API}${img}`;
+  };
+
   useEffect(() => {
     const fetchCars = async () => {
       try {
@@ -67,7 +73,7 @@ const Cars = () => {
               rating: getDisplayRating(car),
               type: getCardType(car),
               status: getDisplayStatus(car.status),
-              image: car.image_url ? `${API}${car.image_url}` : "",
+              image: getImageUrl(car.image_url),
               brand: car.brand || "",
               model: car.model || "",
             }))
