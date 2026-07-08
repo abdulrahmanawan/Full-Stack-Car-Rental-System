@@ -5,12 +5,18 @@ const pool = require("../config/db");
 const removeOldImage = (imageUrl) => {
   if (!imageUrl) return;
   if (imageUrl.startsWith("http")) return;
-  const fullPath = path.join(
-    __dirname,
-    "..",
-    imageUrl.replace("/uploads", "uploads")
-  );
-  if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+  try {
+    const fullPath = path.join(
+      __dirname,
+      "..",
+      imageUrl.replace("/uploads", "uploads")
+    );
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+    }
+  } catch (err) {
+    console.error("Failed to remove old image:", err.message);
+  }
 };
 
 const parseBadges = (badges) => {
@@ -252,7 +258,14 @@ const deleteCar = async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ message: "Car not found" });
     }
-    removeOldImage(rows[0].image_url);
+
+    // File deletion ko safe rakhne ke liye alag try-catch
+    try {
+      removeOldImage(rows[0].image_url);
+    } catch (fileErr) {
+      console.error("File deletion error (ignored):", fileErr.message);
+    }
+
     await pool.execute("DELETE FROM cars WHERE id = ?", [id]);
     res.json({ message: "Car deleted successfully" });
   } catch (error) {
